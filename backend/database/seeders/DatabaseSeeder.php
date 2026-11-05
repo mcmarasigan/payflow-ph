@@ -75,6 +75,9 @@ class DatabaseSeeder extends Seeder
 
         $financeApprover->syncPermissions([
             'employees.view',
+            'attendance.view',
+            'leaves.view',
+            'overtime.view',
             'payroll.approve',
             'payroll.release',
             'payslips.view_all',
@@ -83,6 +86,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $employeeRole->syncPermissions([
+            'attendance.view',
+            'leaves.view',
+            'overtime.view',
             'payslips.view_own',
         ]);
 
@@ -138,6 +144,9 @@ class DatabaseSeeder extends Seeder
             $user->syncRoles([$data['role']]);
         }
 
-        $this->call(DemoOrganizationAndEmployeeSeeder::class);
+        $this->call([
+            DemoOrganizationAndEmployeeSeeder::class,
+            DemoTimeAndLeaveSeeder::class,
+        ]);
     }
 }
