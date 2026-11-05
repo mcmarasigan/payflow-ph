@@ -1,0 +1,15 @@
+{
+  "name": "payflow-ph",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PayFlow PH — Enterprise-Style Philippine HR & Payroll Demonstration System",
+  "scripts": {
+    "serve": "concurrently -n \"BACKEND,FRONTEND\" -c \"bgBlue.bold,bgMagenta.bold\" \"php backend/artisan serve --host=127.0.0.1 --port=8000\" \"npm --prefix frontend run dev\"",
+    "dev": "npm run serve",
+    "build": "npm --prefix frontend run build",
+    "test": "php backend/artisan test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
