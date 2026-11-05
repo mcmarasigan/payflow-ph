@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import LoginPage from '@/pages/LoginPage'
 import DashboardShellPage from '@/pages/DashboardShellPage'
+import EmployeesPage from '@/pages/EmployeesPage'
+import OrganizationPage from '@/pages/OrganizationPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -25,13 +27,30 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
-            path="/*"
+            path="/"
             element={
               <ProtectedRoute>
                 <DashboardShellPage />
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute>
+                <EmployeesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/organization"
+            element={
+              <ProtectedRoute>
+                <OrganizationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

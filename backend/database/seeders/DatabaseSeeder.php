@@ -137,5 +137,7 @@ class DatabaseSeeder extends Seeder
             );
             $user->syncRoles([$data['role']]);
         }
+
+        $this->call(DemoOrganizationAndEmployeeSeeder::class);
     }
 }

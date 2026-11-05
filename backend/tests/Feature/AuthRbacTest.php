@@ -47,3 +47,4 @@ class AuthRbacTest extends TestCase
         $this->assertNotContains('payroll.compute', $financeLogin['permissions']);
     }
 }
+
