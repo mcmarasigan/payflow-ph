@@ -35,3 +35,4 @@ class Holiday extends Model
             ->dontSubmitEmptyLogs();
     }
 }
+

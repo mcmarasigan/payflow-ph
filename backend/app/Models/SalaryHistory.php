@@ -47,3 +47,4 @@ class SalaryHistory extends Model
             ->dontSubmitEmptyLogs();
     }
 }
+

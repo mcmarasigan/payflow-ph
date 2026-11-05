@@ -43,3 +43,4 @@ class Department extends Model
             ->dontSubmitEmptyLogs();
     }
 }
+

@@ -44,3 +44,4 @@ class Position extends Model
             ->dontSubmitEmptyLogs();
     }
 }
+

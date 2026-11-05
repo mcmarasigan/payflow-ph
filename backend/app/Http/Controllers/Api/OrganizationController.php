@@ -72,3 +72,4 @@ class OrganizationController extends Controller
         return response()->json(['holiday' => $holiday], 201);
     }
 }
+

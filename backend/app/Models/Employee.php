@@ -138,3 +138,4 @@ class Employee extends Model
             ->dontSubmitEmptyLogs();
     }
 }
+
