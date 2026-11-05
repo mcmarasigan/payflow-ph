@@ -1,0 +1,28 @@
+# Dependencies
+/backend/vendor/
+/frontend/node_modules/
+
+# Build & Cache
+/frontend/dist/
+/backend/bootstrap/cache/*
+!/backend/bootstrap/cache/.gitignore
+/backend/storage/framework/cache/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*
+
+# Environment files
+/backend/.env
+/backend/.env.backup
+/backend/.env.production
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.production
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
