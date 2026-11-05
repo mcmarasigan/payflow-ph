@@ -25,28 +25,28 @@ export default function AppLayout({ title, subtitle, actions, children }) {
   const { user, logout } = useAuth()
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0">
-        <div>
-          <div className="p-5 flex items-center gap-3 border-b border-slate-800">
-            <div className="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-sm">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 flex">
+      {/* Fixed-Height Sidebar */}
+      <aside className="w-64 h-full bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0 border-r border-slate-800">
+        <div className="min-h-0 flex flex-col">
+          <div className="h-14 px-5 flex items-center gap-3 border-b border-slate-800 shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
               PF
             </div>
             <div>
               <div className="text-sm font-bold text-white leading-none">PayFlow PH</div>
-              <div className="text-[11px] text-slate-400 mt-1">HR & Payroll System</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">HR & Payroll System</div>
             </div>
           </div>
 
-          <nav className="p-3 space-y-1">
+          <nav className="p-3 space-y-1 overflow-y-auto">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon
               if (!item.ready) {
                 return (
                   <div
                     key={item.to}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium text-slate-500 cursor-not-allowed"
+                    className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-500 cursor-not-allowed"
                   >
                     <div className="flex items-center gap-2.5">
                       <Icon className="h-4 w-4" />
@@ -65,7 +65,7 @@ export default function AppLayout({ title, subtitle, actions, children }) {
                   to={item.to}
                   end={item.to === '/'}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       isActive
                         ? 'bg-indigo-600 text-white shadow-xs'
                         : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
@@ -95,7 +95,8 @@ export default function AppLayout({ title, subtitle, actions, children }) {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-slate-800 bg-slate-950/60">
+        {/* Pinned Bottom User Profile Card */}
+        <div className="p-4 border-t border-slate-800 bg-slate-950/60 shrink-0">
           <div className="text-xs font-semibold text-white truncate">{user?.name}</div>
           <div className="text-[11px] text-slate-400 truncate">{user?.email}</div>
           <div className="mt-2.5 flex items-center justify-between">
@@ -112,14 +113,14 @@ export default function AppLayout({ title, subtitle, actions, children }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0">
-          <div>
-            <h1 className="text-lg font-bold text-slate-900">{title}</h1>
-            <p className="text-xs text-slate-500">{subtitle}</p>
+      {/* Viewport-Locked Main Area */}
+      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
+        <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
+          <div className="min-w-0">
+            <h1 className="text-base font-bold text-slate-900 truncate">{title}</h1>
+            <p className="text-[11px] text-slate-500 truncate">{subtitle}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 shrink-0">
             {actions}
             <Badge variant="warning">Demonstration System</Badge>
             <Button variant="outline" size="sm" onClick={logout}>
@@ -128,9 +129,10 @@ export default function AppLayout({ title, subtitle, actions, children }) {
           </div>
         </header>
 
-        <main className="p-8 space-y-6 flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 min-h-0 p-5 flex flex-col gap-4 overflow-hidden">
+          {children}
+        </main>
       </div>
     </div>
   )
 }
-

@@ -96,9 +96,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col lg:flex-row">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100 flex flex-col lg:flex-row">
       {/* Left Column: Brand & Enterprise Architecture Highlights */}
-      <div className="lg:w-7/12 p-8 lg:p-14 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border-b lg:border-b-0 lg:border-r border-slate-800/80">
+      <div className="lg:w-7/12 p-6 lg:p-10 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border-b lg:border-b-0 lg:border-r border-slate-800/80 overflow-y-auto">
         <div>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">

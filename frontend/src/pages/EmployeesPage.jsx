@@ -139,45 +139,45 @@ export default function EmployeesPage() {
         )
       }
     >
-      {/* Top KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Top Compact KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5 shrink-0">
         <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Active Headcount</CardDescription>
-            <CardTitle className="text-2xl">{meta.active_count} Employees</CardTitle>
+          <CardHeader className="p-3.5 pb-1">
+            <CardDescription>Active Headcount</CardDescription>
+            <CardTitle className="text-xl">{meta.active_count} Employees</CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-slate-500">
+          <CardContent className="p-3.5 pt-0 text-[11px] text-slate-500">
             Across {departments.length} active departments
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3.5 pb-1">
             <CardDescription>Monthly Basic Payroll Base</CardDescription>
-            <CardTitle className="text-2xl text-indigo-600">
+            <CardTitle className="text-xl text-indigo-600">
               {formatPHP(meta.total_monthly_basic)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-slate-500">
+          <CardContent className="p-3.5 pt-0 text-[11px] text-slate-500">
             Excludes de minimis & overtime
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3.5 pb-1">
             <CardDescription>Statutory ID Protection</CardDescription>
-            <CardTitle className="text-base flex items-center gap-1.5 text-emerald-700 mt-1">
+            <CardTitle className="text-sm flex items-center gap-1.5 text-emerald-700 mt-0.5">
               <Lock className="h-4 w-4 text-emerald-600" />
               AES-256 Encrypted Casts
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-slate-500">
+          <CardContent className="p-3.5 pt-0 text-[11px] text-slate-500">
             SSS, PhilHealth, Pag-IBIG, TIN & Bank
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3.5 pb-1">
             <CardDescription>Sensitive Data Visibility</CardDescription>
             <div className="mt-1">
               {hasPermission('employees.view_sensitive') ? (
@@ -185,7 +185,7 @@ export default function EmployeesPage() {
                   variant={unmask ? 'destructive' : 'outline'}
                   size="sm"
                   onClick={() => setUnmask(!unmask)}
-                  className="w-full"
+                  className="w-full h-7 text-xs"
                 >
                   {unmask ? (
                     <>
@@ -202,34 +202,34 @@ export default function EmployeesPage() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="text-xs text-slate-500">
+          <CardContent className="p-3.5 pt-0 text-[11px] text-slate-500">
             Requires <code>employees.view_sensitive</code>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters & Directory Table */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100">
+      {/* Internally Scrollable 201 Directory Card */}
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <CardHeader className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 shrink-0">
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Users className="h-4 w-4 text-indigo-600" />
-              201 Employee Master Directory
+              201 Employee Master Directory ({employees.length})
             </CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-0.5">
               Click any employee row to inspect 201 profile, allowances, and salary revision history.
             </CardDescription>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search name, code, email..."
-                className="rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none w-56"
+                className="rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none w-52"
               />
             </div>
 
@@ -248,75 +248,73 @@ export default function EmployeesPage() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-0 flex-1 min-h-0 overflow-y-auto">
           {loading ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading 201 employee records...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-4">Code</th>
-                    <th className="py-3 px-4">Employee</th>
-                    <th className="py-3 px-4">Department & Position</th>
-                    <th className="py-3 px-4">Tenure / Type</th>
-                    <th className="py-3 px-4">SSS / TIN</th>
-                    <th className="py-3 px-4 text-right">Monthly Basic</th>
-                    <th className="py-3 px-4 text-right">Allowances</th>
-                    <th className="py-3 px-4 text-center">Action</th>
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="py-2.5 px-4">Code</th>
+                  <th className="py-2.5 px-4">Employee</th>
+                  <th className="py-2.5 px-4">Department & Position</th>
+                  <th className="py-2.5 px-4">Tenure / Type</th>
+                  <th className="py-2.5 px-4">SSS / TIN</th>
+                  <th className="py-2.5 px-4 text-right">Monthly Basic</th>
+                  <th className="py-2.5 px-4 text-right">Allowances</th>
+                  <th className="py-2.5 px-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {employees.map((emp) => (
+                  <tr
+                    key={emp.id}
+                    onClick={() => openEmployeeDrawer(emp.id)}
+                    className="hover:bg-indigo-50/40 transition-colors cursor-pointer"
+                  >
+                    <td className="py-2.5 px-4 font-mono font-semibold text-indigo-600 whitespace-nowrap">
+                      {emp.employee_code}
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <div className="font-semibold text-slate-900">{emp.full_name}</div>
+                      <div className="text-[11px] text-slate-500">{emp.email}</div>
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <div className="font-medium text-slate-800">{emp.position?.title}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {emp.department?.code} • {emp.department?.name}
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <Badge
+                        variant={emp.employment_type === 'regular' ? 'success' : 'warning'}
+                        className="capitalize"
+                      >
+                        {emp.employment_type}
+                      </Badge>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Hired {emp.hire_date}
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      <div>SSS: {emp.sss_no}</div>
+                      <div>TIN: {emp.tin_no}</div>
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-900 whitespace-nowrap">
+                      {formatPHP(emp.basic_salary)}
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-mono text-slate-600 whitespace-nowrap">
+                      {formatPHP(emp.total_allowances)}
+                    </td>
+                    <td className="py-2.5 px-4 text-center">
+                      <Button variant="outline" size="sm">
+                        201 File
+                      </Button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {employees.map((emp) => (
-                    <tr
-                      key={emp.id}
-                      onClick={() => openEmployeeDrawer(emp.id)}
-                      className="hover:bg-indigo-50/40 transition-colors cursor-pointer"
-                    >
-                      <td className="py-3 px-4 font-mono font-semibold text-indigo-600">
-                        {emp.employee_code}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900">{emp.full_name}</div>
-                        <div className="text-[11px] text-slate-500">{emp.email}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-slate-800">{emp.position?.title}</div>
-                        <div className="text-[11px] text-slate-500">
-                          {emp.department?.code} • {emp.department?.name}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant={emp.employment_type === 'regular' ? 'success' : 'warning'}
-                          className="capitalize"
-                        >
-                          {emp.employment_type}
-                        </Badge>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
-                          Hired {emp.hire_date}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-600">
-                        <div>SSS: {emp.sss_no}</div>
-                        <div>TIN: {emp.tin_no}</div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono font-semibold text-slate-900">
-                        {formatPHP(emp.basic_salary)}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono text-slate-600">
-                        {formatPHP(emp.total_allowances)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <Button variant="outline" size="sm">
-                          201 File
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           )}
         </CardContent>
       </Card>
@@ -324,10 +322,10 @@ export default function EmployeesPage() {
       {/* 201 Profile Drawer / Modal */}
       {activeEmployee && (
         <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex justify-end">
-          <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto">
-            <div>
+          <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
               {/* Drawer Header */}
-              <div className="p-6 border-b border-slate-200 flex items-start justify-between bg-slate-900 text-white">
+              <div className="p-5 border-b border-slate-200 flex items-start justify-between bg-slate-900 text-white shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
@@ -337,8 +335,8 @@ export default function EmployeesPage() {
                       {activeEmployee.employment_type}
                     </Badge>
                   </div>
-                  <h2 className="text-xl font-bold mt-2">{activeEmployee.full_name}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h2 className="text-lg font-bold mt-1.5">{activeEmployee.full_name}</h2>
+                  <p className="text-xs text-slate-400">
                     {activeEmployee.position?.title} — {activeEmployee.department?.name}
                   </p>
                 </div>
@@ -351,7 +349,7 @@ export default function EmployeesPage() {
               </div>
 
               {/* Drawer Tabs */}
-              <div className="px-6 border-b border-slate-200 flex gap-6 text-xs font-semibold">
+              <div className="px-6 border-b border-slate-200 flex gap-6 text-xs font-semibold shrink-0">
                 {[
                   { id: 'info', label: '201 Personal & Statutory IDs' },
                   { id: 'comp', label: 'Compensation & De Minimis' },
@@ -360,7 +358,7 @@ export default function EmployeesPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-3.5 border-b-2 transition-colors cursor-pointer ${
+                    className={`py-3 border-b-2 transition-colors cursor-pointer ${
                       activeTab === tab.id
                         ? 'border-indigo-600 text-indigo-600'
                         : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -371,8 +369,8 @@ export default function EmployeesPage() {
                 ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="p-6 space-y-6 text-xs">
+              {/* Scrollable Tab Content */}
+              <div className="p-6 space-y-5 text-xs flex-1 min-h-0 overflow-y-auto">
                 {activeTab === 'info' && (
                   <>
                     <div className="rounded-xl border border-slate-200 p-4 space-y-3">
@@ -540,7 +538,7 @@ export default function EmployeesPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end shrink-0">
               <Button variant="outline" size="sm" onClick={() => setActiveEmployee(null)}>
                 Close 201 Record
               </Button>
@@ -645,4 +643,3 @@ export default function EmployeesPage() {
     </AppLayout>
   )
 }
-
