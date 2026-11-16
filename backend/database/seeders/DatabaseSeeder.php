@@ -147,6 +147,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DemoOrganizationAndEmployeeSeeder::class,
             DemoTimeAndLeaveSeeder::class,
+            DemoPayrollSeeder::class,
         ]);
     }
 }

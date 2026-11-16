@@ -5,6 +5,7 @@ import DashboardShellPage from '@/pages/DashboardShellPage'
 import EmployeesPage from '@/pages/EmployeesPage'
 import OrganizationPage from '@/pages/OrganizationPage'
 import AttendanceAndLeavePage from '@/pages/AttendanceAndLeavePage'
+import PayrollRunPage from '@/pages/PayrollRunPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -56,6 +57,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AttendanceAndLeavePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payroll"
+            element={
+              <ProtectedRoute>
+                <PayrollRunPage />
               </ProtectedRoute>
             }
           />

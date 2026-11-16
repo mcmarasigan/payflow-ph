@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\TimeAndLeaveController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,4 +46,17 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:leaves.approve');
     Route::put('/leave-types/{leaveType}', [TimeAndLeaveController::class, 'updateLeavePolicy'])
         ->middleware('permission:employees.manage');
+
+    // Phase 4: Core PH Payroll Computation Engine & Immutable Workflow
+    Route::get('/payroll/runs', [PayrollController::class, 'index']);
+    Route::get('/payroll/simulate', [PayrollController::class, 'simulate']);
+    Route::get('/payroll/runs/{payrollRun}', [PayrollController::class, 'show']);
+    Route::post('/payroll/runs', [PayrollController::class, 'store'])
+        ->middleware('permission:payroll.prepare');
+    Route::post('/payroll/runs/{payrollRun}/compute', [PayrollController::class, 'compute'])
+        ->middleware('permission:payroll.compute');
+    Route::post('/payroll/runs/{payrollRun}/approve', [PayrollController::class, 'approve'])
+        ->middleware('permission:payroll.approve');
+    Route::post('/payroll/runs/{payrollRun}/lock', [PayrollController::class, 'lock'])
+        ->middleware('permission:payroll.release');
 });

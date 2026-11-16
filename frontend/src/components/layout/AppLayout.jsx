@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { to: '/employees', label: 'Employee 201 Files', icon: Users, badge: 'Live', ready: true },
   { to: '/organization', label: 'Org & PH Holidays', icon: Landmark, badge: 'Live', ready: true },
   { to: '/attendance', label: 'Attendance & Leaves', icon: Clock, badge: 'Live', ready: true },
-  { to: '/payroll', label: 'Payroll Master Run', icon: Calculator, badge: 'Phase 4', ready: false },
+  { to: '/payroll', label: 'Payroll Master Run', icon: Calculator, badge: 'Live', ready: true },
   { to: '/portal', label: 'My Payslips & Portal', icon: FileText, badge: 'Phase 5', ready: false },
 ]
 
