@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\PayrollController;
+use App\Http\Controllers\Api\PortalAndReportsController;
 use App\Http\Controllers\Api\TimeAndLeaveController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,4 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:payroll.approve');
     Route::post('/payroll/runs/{payrollRun}/lock', [PayrollController::class, 'lock'])
         ->middleware('permission:payroll.release');
+
+    // Phase 5: Employee Self-Service Portal, Printable PDF Payslips & Executive Analytics
+    Route::get('/portal/overview', [PortalAndReportsController::class, 'portalOverview']);
+    Route::get('/portal/payslips/{payrollItem}/pdf', [PortalAndReportsController::class, 'downloadPayslipPdf']);
+    Route::get('/executive/analytics', [PortalAndReportsController::class, 'executiveAnalytics']);
 });

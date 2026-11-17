@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { to: '/organization', label: 'Org & PH Holidays', icon: Landmark, badge: 'Live', ready: true },
   { to: '/attendance', label: 'Attendance & Leaves', icon: Clock, badge: 'Live', ready: true },
   { to: '/payroll', label: 'Payroll Master Run', icon: Calculator, badge: 'Live', ready: true },
-  { to: '/portal', label: 'My Payslips & Portal', icon: FileText, badge: 'Phase 5', ready: false },
+  { to: '/portal', label: 'My Payslips & Portal', icon: FileText, badge: 'Live', ready: true },
 ]
 
 export default function AppLayout({ title, subtitle, actions, children }) {

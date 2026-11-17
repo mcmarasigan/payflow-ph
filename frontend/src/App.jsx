@@ -6,6 +6,7 @@ import EmployeesPage from '@/pages/EmployeesPage'
 import OrganizationPage from '@/pages/OrganizationPage'
 import AttendanceAndLeavePage from '@/pages/AttendanceAndLeavePage'
 import PayrollRunPage from '@/pages/PayrollRunPage'
+import EmployeePortalPage from '@/pages/EmployeePortalPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -65,6 +66,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <PayrollRunPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/portal"
+            element={
+              <ProtectedRoute>
+                <EmployeePortalPage />
               </ProtectedRoute>
             }
           />
