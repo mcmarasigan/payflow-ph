@@ -17,9 +17,37 @@ use Illuminate\Support\Facades\DB;
 
 class TimeAndLeaveController extends Controller
 {
+    /**
+     * Self-service scoping: users without attendance.manage (e.g. Employee role)
+     * are restricted to their own linked employee record.
+     * Returns null when the user may see everyone.
+     */
+    private function selfScopedEmployeeId(Request $request): ?int
+    {
+        $user = $request->user();
+        if ($user?->can('attendance.manage')) {
+            return null;
+        }
+
+        $employee = Employee::where('email', $user?->email)->first();
+        abort_unless($employee, 403, 'No employee record is linked to this account.');
+
+        return $employee->id;
+    }
+
+    /** Force employee_id to the caller's own record for self-service users. */
+    private function enforceOwnEmployee(Request $request): void
+    {
+        $ownId = $this->selfScopedEmployeeId($request);
+        if ($ownId !== null) {
+            $request->merge(['employee_id' => $ownId]);
+        }
+    }
+
     public function overview(Request $request): JsonResponse
     {
-        $employeeId = $request->integer('employee_id');
+        $ownId = $this->selfScopedEmployeeId($request);
+        $employeeId = $ownId ?? $request->integer('employee_id');
 
         $attendanceQuery = Attendance::with('employee:id,employee_code,first_name,last_name,department_id')
             ->orderByDesc('work_date')
@@ -88,6 +116,7 @@ class TimeAndLeaveController extends Controller
             ]);
 
         $employees = Employee::select('id', 'employee_code', 'first_name', 'last_name', 'work_schedule_start', 'work_schedule_end')
+            ->when($ownId, fn ($q) => $q->where('id', $ownId))
             ->orderBy('employee_code')
             ->get()
             ->map(fn (Employee $e) => [
@@ -98,6 +127,7 @@ class TimeAndLeaveController extends Controller
             ]);
 
         return response()->json([
+            'is_self_service' => $ownId !== null,
             'employees' => $employees,
             'attendances' => $attendances->map(fn (Attendance $a) => [
                 'id' => $a->id,
@@ -154,6 +184,7 @@ class TimeAndLeaveController extends Controller
 
     public function recordAttendance(Request $request): JsonResponse
     {
+        $this->enforceOwnEmployee($request);
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
             'work_date' => ['required', 'date'],
@@ -240,6 +271,7 @@ class TimeAndLeaveController extends Controller
 
     public function fileOvertime(Request $request): JsonResponse
     {
+        $this->enforceOwnEmployee($request);
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
             'work_date' => ['required', 'date'],
@@ -296,6 +328,7 @@ class TimeAndLeaveController extends Controller
 
     public function fileLeave(Request $request): JsonResponse
     {
+        $this->enforceOwnEmployee($request);
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
             'leave_type_id' => ['required', 'exists:leave_types,id'],

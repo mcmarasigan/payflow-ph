@@ -12,17 +12,19 @@ import {
   LogOut,
 } from 'lucide-react'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Executive & Audit', icon: Building2, badge: 'Live', ready: true },
-  { to: '/employees', label: 'Employee 201 Files', icon: Users, badge: 'Live', ready: true },
-  { to: '/organization', label: 'Org & PH Holidays', icon: Landmark, badge: 'Live', ready: true },
-  { to: '/attendance', label: 'Attendance & Leaves', icon: Clock, badge: 'Live', ready: true },
-  { to: '/payroll', label: 'Payroll Master Run', icon: Calculator, badge: 'Live', ready: true },
-  { to: '/portal', label: 'My Payslips & Portal', icon: FileText, badge: 'Live', ready: true },
+// Each module declares which permissions can access it (any-of). Sidebar hides modules the role cannot use.
+export const NAV_ITEMS = [
+  { to: '/', label: 'Executive & Audit', icon: Building2, badge: 'Live', ready: true, perms: ['audit.view', 'payslips.view_all'] },
+  { to: '/employees', label: 'Employee 201 Files', icon: Users, badge: 'Live', ready: true, perms: ['employees.view'] },
+  { to: '/organization', label: 'Org & PH Holidays', icon: Landmark, badge: 'Live', ready: true, perms: ['employees.view'] },
+  { to: '/attendance', label: 'Attendance & Leaves', icon: Clock, badge: 'Live', ready: true, perms: ['attendance.view'] },
+  { to: '/payroll', label: 'Payroll Master Run', icon: Calculator, badge: 'Live', ready: true, perms: ['payroll.prepare', 'payroll.compute', 'payroll.approve', 'payroll.release'] },
+  { to: '/portal', label: 'My Payslips & Portal', icon: FileText, badge: 'Live', ready: true, perms: ['payslips.view_own'] },
 ]
 
 export default function AppLayout({ title, subtitle, actions, children }) {
-  const { user, logout } = useAuth()
+  const { user, logout, hasAnyPermission } = useAuth()
+  const visibleNav = NAV_ITEMS.filter((item) => hasAnyPermission(item.perms))
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-50 flex">
@@ -40,7 +42,7 @@ export default function AppLayout({ title, subtitle, actions, children }) {
           </div>
 
           <nav className="p-3 space-y-1 overflow-y-auto">
-            {NAV_ITEMS.map((item) => {
+            {visibleNav.map((item) => {
               const Icon = item.icon
               if (!item.ready) {
                 return (

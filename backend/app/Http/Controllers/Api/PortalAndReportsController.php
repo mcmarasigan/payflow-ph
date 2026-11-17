@@ -184,6 +184,12 @@ class PortalAndReportsController extends Controller
 
     public function downloadPayslipPdf(Request $request, PayrollItem $payrollItem): Response
     {
+        $user = $request->user();
+        if (! $user?->can('payslips.view_all')) {
+            $ownEmployee = Employee::where('email', $user?->email)->first();
+            abort_unless($ownEmployee && $ownEmployee->id === $payrollItem->employee_id, 403, 'You can only download your own payslips.');
+        }
+
         $payrollItem->load('payrollRun');
 
         activity('payslips')

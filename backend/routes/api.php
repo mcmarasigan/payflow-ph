@@ -18,7 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role:Super Admin|HR Manager|Approver / Finance');
 
     // Phase 2: Organization & Holidays
-    Route::get('/organization', [OrganizationController::class, 'overview']);
+    Route::get('/organization', [OrganizationController::class, 'overview'])
+        ->middleware('permission:employees.view');
     Route::post('/organization/departments', [OrganizationController::class, 'storeDepartment'])
         ->middleware('permission:employees.manage');
     Route::post('/organization/positions', [OrganizationController::class, 'storePosition'])
@@ -37,21 +38,27 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:employees.manage');
 
     // Phase 3: Attendance, DTR, DOLE Overtime & Configurable Leave Policies
-    Route::get('/time-and-leave', [TimeAndLeaveController::class, 'overview']);
-    Route::post('/attendances', [TimeAndLeaveController::class, 'recordAttendance']);
-    Route::post('/overtime-requests', [TimeAndLeaveController::class, 'fileOvertime']);
+    Route::get('/time-and-leave', [TimeAndLeaveController::class, 'overview'])
+        ->middleware('permission:attendance.view');
+    Route::post('/attendances', [TimeAndLeaveController::class, 'recordAttendance'])
+        ->middleware('permission:attendance.view');
+    Route::post('/overtime-requests', [TimeAndLeaveController::class, 'fileOvertime'])
+        ->middleware('permission:overtime.view');
     Route::match(['post', 'patch'], '/overtime-requests/{overtimeRequest}/review', [TimeAndLeaveController::class, 'reviewOvertime'])
         ->middleware('permission:overtime.approve');
-    Route::post('/leave-requests', [TimeAndLeaveController::class, 'fileLeave']);
+    Route::post('/leave-requests', [TimeAndLeaveController::class, 'fileLeave'])
+        ->middleware('permission:leaves.view');
     Route::match(['post', 'patch'], '/leave-requests/{leaveRequest}/review', [TimeAndLeaveController::class, 'reviewLeave'])
         ->middleware('permission:leaves.approve');
     Route::put('/leave-types/{leaveType}', [TimeAndLeaveController::class, 'updateLeavePolicy'])
         ->middleware('permission:employees.manage');
 
     // Phase 4: Core PH Payroll Computation Engine & Immutable Workflow
-    Route::get('/payroll/runs', [PayrollController::class, 'index']);
-    Route::get('/payroll/simulate', [PayrollController::class, 'simulate']);
-    Route::get('/payroll/runs/{payrollRun}', [PayrollController::class, 'show']);
+    Route::middleware('permission:payroll.prepare|payroll.compute|payroll.approve|payroll.release')->group(function () {
+        Route::get('/payroll/runs', [PayrollController::class, 'index']);
+        Route::get('/payroll/simulate', [PayrollController::class, 'simulate']);
+        Route::get('/payroll/runs/{payrollRun}', [PayrollController::class, 'show']);
+    });
     Route::post('/payroll/runs', [PayrollController::class, 'store'])
         ->middleware('permission:payroll.prepare');
     Route::post('/payroll/runs/{payrollRun}/compute', [PayrollController::class, 'compute'])
@@ -62,10 +69,14 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:payroll.release');
 
     // Phase 5 & 6: Employee Self-Service Portal, Printable PDF Payslips, CSV Export, Executive Analytics & Demo Reset
-    Route::get('/portal/overview', [PortalAndReportsController::class, 'portalOverview']);
-    Route::get('/portal/payslips/{payrollItem}/pdf', [PortalAndReportsController::class, 'downloadPayslipPdf']);
-    Route::get('/executive/analytics', [PortalAndReportsController::class, 'executiveAnalytics']);
-    Route::get('/payroll/runs/{payrollRun}/export-csv', [PortalAndReportsController::class, 'exportPayrollRunCsv']);
+    Route::get('/portal/overview', [PortalAndReportsController::class, 'portalOverview'])
+        ->middleware('permission:payslips.view_own|payslips.view_all');
+    Route::get('/portal/payslips/{payrollItem}/pdf', [PortalAndReportsController::class, 'downloadPayslipPdf'])
+        ->middleware('permission:payslips.view_own|payslips.view_all');
+    Route::get('/executive/analytics', [PortalAndReportsController::class, 'executiveAnalytics'])
+        ->middleware('permission:audit.view|payslips.view_all');
+    Route::get('/payroll/runs/{payrollRun}/export-csv', [PortalAndReportsController::class, 'exportPayrollRunCsv'])
+        ->middleware('permission:payslips.view_all');
     Route::post('/system/reset-demo', [PortalAndReportsController::class, 'resetDemoDatabase'])
         ->middleware('permission:settings.manage');
 });

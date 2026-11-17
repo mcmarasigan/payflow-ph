@@ -59,8 +59,13 @@ export function AuthProvider({ children }) {
     return user.permissions?.includes(perm)
   }
 
+  const hasAnyPermission = (perms = []) => {
+    if (!perms.length) return true
+    return perms.some((p) => hasPermission(p))
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, hasPermission, hasAnyPermission }}>
       {children}
     </AuthContext.Provider>
   )
