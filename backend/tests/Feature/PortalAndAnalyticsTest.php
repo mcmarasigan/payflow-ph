@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PayrollItem;
+use App\Models\PayrollRun;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,5 +55,25 @@ class PortalAndAnalyticsTest extends TestCase
             ->assertJsonPath('kpis.active_headcount', 10)
             ->assertJsonCount(5, 'department_breakdown')
             ->assertJsonCount(2, 'remittance_schedule');
+    }
+
+    public function test_payroll_register_csv_export_and_demo_database_reset_command(): void
+    {
+        $admin = User::where('email', 'admin@payflow.ph')->firstOrFail();
+        $employeeUser = User::where('email', 'employee@payflow.ph')->firstOrFail();
+        $run = PayrollRun::firstOrFail();
+
+        $csvRes = $this->actingAs($admin)->get("/api/payroll/runs/{$run->id}/export-csv");
+        $csvRes->assertOk();
+        $this->assertStringContainsString('text/csv', $csvRes->headers->get('Content-Type'));
+
+        // Employee cannot reset demo DB (403 Forbidden)
+        $forbiddenReset = $this->actingAs($employeeUser)->postJson('/api/system/reset-demo');
+        $forbiddenReset->assertForbidden();
+
+        // Super Admin can reset demo DB
+        $resetRes = $this->actingAs($admin)->postJson('/api/system/reset-demo');
+        $resetRes->assertOk()
+            ->assertJsonPath('message', 'PayFlow PH demonstration data has been reset to its initial state.');
     }
 }

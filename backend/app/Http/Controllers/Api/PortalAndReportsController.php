@@ -15,7 +15,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Activitylog\Models\Activity;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PortalAndReportsController extends Controller
 {
@@ -298,6 +300,104 @@ class PortalAndReportsController extends Controller
             'department_breakdown' => $departmentBreakdown,
             'remittance_schedule' => $remittanceSchedule,
             'audit_logs' => $recentLogs,
+        ]);
+    }
+
+    public function exportPayrollRunCsv(Request $request, PayrollRun $payrollRun): StreamedResponse
+    {
+        $payrollRun->load('items');
+
+        activity('payroll')
+            ->performedOn($payrollRun)
+            ->causedBy($request->user())
+            ->withProperties([
+                'run_code' => $payrollRun->run_code,
+                'format' => 'csv',
+                'ip' => $request->ip(),
+            ])
+            ->event('payroll_csv_exported')
+            ->log("Exported bank payroll & statutory register CSV for {$payrollRun->run_code}");
+
+        $filename = "Payroll-Register-{$payrollRun->run_code}.csv";
+
+        return response()->streamDownload(function () use ($payrollRun) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Run Code',
+                'Employee Code',
+                'Employee Name',
+                'Department',
+                'Position',
+                'Monthly Basic',
+                'Basic Cutoff Pay',
+                'Overtime Pay',
+                'Night Diff Pay',
+                'Holiday Pay',
+                'De Minimis Allowance',
+                'Gross Pay',
+                'Late/UT Deduction',
+                'LWOP Deduction',
+                'SSS EE',
+                'PhilHealth EE',
+                'Pag-IBIG EE',
+                'BIR Taxable Income',
+                'BIR Withholding Tax',
+                'Total Deductions',
+                'Net Pay',
+                'SSS ER+EC',
+                'PhilHealth ER',
+                'Pag-IBIG ER',
+                'Total Employer Share',
+            ]);
+
+            foreach ($payrollRun->items as $item) {
+                fputcsv($handle, [
+                    $payrollRun->run_code,
+                    $item->employee_code,
+                    $item->employee_name,
+                    $item->department_name,
+                    $item->position_title,
+                    number_format((float) $item->monthly_basic_salary, 2, '.', ''),
+                    number_format((float) $item->basic_pay, 2, '.', ''),
+                    number_format((float) $item->overtime_pay, 2, '.', ''),
+                    number_format((float) $item->night_diff_pay, 2, '.', ''),
+                    number_format((float) $item->holiday_pay, 2, '.', ''),
+                    number_format((float) $item->de_minimis_allowance, 2, '.', ''),
+                    number_format((float) $item->gross_pay, 2, '.', ''),
+                    number_format((float) $item->late_undertime_deduction, 2, '.', ''),
+                    number_format((float) $item->lwop_deduction, 2, '.', ''),
+                    number_format((float) $item->sss_ee, 2, '.', ''),
+                    number_format((float) $item->philhealth_ee, 2, '.', ''),
+                    number_format((float) $item->pagibig_ee, 2, '.', ''),
+                    number_format((float) $item->taxable_income, 2, '.', ''),
+                    number_format((float) $item->withholding_tax, 2, '.', ''),
+                    number_format((float) $item->total_deductions, 2, '.', ''),
+                    number_format((float) $item->net_pay, 2, '.', ''),
+                    number_format((float) $item->sss_er + (float) $item->sss_ec, 2, '.', ''),
+                    number_format((float) $item->philhealth_er, 2, '.', ''),
+                    number_format((float) $item->pagibig_er, 2, '.', ''),
+                    number_format((float) $item->total_employer_cost, 2, '.', ''),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function resetDemoDatabase(Request $request): JsonResponse
+    {
+        Artisan::call('payflow:reset-demo');
+
+        activity('system')
+            ->causedBy($request->user())
+            ->withProperties(['ip' => $request->ip()])
+            ->event('demo_database_reset')
+            ->log('Triggered manual reset of synthetic demonstration database');
+
+        return response()->json([
+            'message' => 'PayFlow PH demonstration data has been reset to its initial state.',
         ]);
     }
 }

@@ -1,9 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
 import AppLayout from '@/components/layout/AppLayout'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+} from 'recharts'
 import {
   ShieldCheck,
   Activity,
@@ -14,6 +25,8 @@ import {
   Scale,
   CheckCircle2,
   XCircle,
+  RotateCcw,
+  Search,
 } from 'lucide-react'
 
 const ALL_PERMISSIONS = [
@@ -44,17 +57,40 @@ const fmt = (val) =>
 
 export default function DashboardShellPage() {
   const { user, hasPermission } = useAuth()
+  const canManageSettings = hasPermission('settings.manage')
+
   const [activeTab, setActiveTab] = useState('analytics')
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [resetting, setResetting] = useState(false)
+  const [resetBanner, setResetBanner] = useState('')
+  const [auditSearch, setAuditSearch] = useState('')
+  const [auditFilter, setAuditFilter] = useState('all')
 
-  useEffect(() => {
+  const fetchAnalytics = useCallback(() => {
+    setLoading(true)
     api
       .get('/executive/analytics')
       .then((res) => setAnalytics(res.data))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [fetchAnalytics])
+
+  const handleResetDemo = async () => {
+    setResetting(true)
+    setResetBanner('')
+    try {
+      const res = await api.post('/system/reset-demo')
+      setResetBanner(res.data.message)
+      fetchAnalytics()
+    } finally {
+      setResetting(false)
+    }
+  }
 
   const kpis = analytics?.kpis || {
     active_headcount: 10,
@@ -64,17 +100,56 @@ export default function DashboardShellPage() {
     latest_statutory_remittance: 0,
   }
 
-  const maxDeptSalary = Math.max(
-    1,
-    ...(analytics?.department_breakdown || []).map((d) => d.monthly_basic_total)
-  )
+  const filteredLogs = (analytics?.audit_logs || []).filter((log) => {
+    const matchesCategory =
+      auditFilter === 'all' ||
+      (auditFilter === 'payroll' && log.log_name === 'payroll') ||
+      (auditFilter === 'time' && ['leaves', 'overtime'].includes(log.log_name)) ||
+      (auditFilter === 'payslips' && log.log_name === 'payslips') ||
+      (auditFilter === 'system' && ['auth', 'system', 'default'].includes(log.log_name))
+
+    if (!matchesCategory) return false
+    if (!auditSearch.trim()) return true
+    const q = auditSearch.toLowerCase()
+    return (
+      log.description?.toLowerCase().includes(q) ||
+      log.causer_name?.toLowerCase().includes(q) ||
+      log.event?.toLowerCase().includes(q)
+    )
+  })
 
   return (
     <AppLayout
       title="Executive Analytics, Statutory Remittance & Security Audit"
       subtitle={`Signed in as ${user?.name} (${user?.primary_role}) • ${user?.department_name}`}
+      actions={
+        canManageSettings && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleResetDemo}
+            disabled={resetting}
+            title="Reset synthetic demonstration data to clean baseline (also runs automatically every midnight)"
+          >
+            <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+            {resetting ? 'Resetting DB...' : 'Reset Demo Data'}
+          </Button>
+        )
+      }
     >
       <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+        {resetBanner && (
+          <div className="px-3.5 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shrink-0">
+            <span>{resetBanner}</span>
+            <button
+              onClick={() => setResetBanner('')}
+              className="text-[11px] font-semibold underline cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Top KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 shrink-0">
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5 flex items-center justify-between">
@@ -131,7 +206,7 @@ export default function DashboardShellPage() {
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="flex items-center justify-between gap-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-1.5 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs">
             <button
               onClick={() => setActiveTab('analytics')}
@@ -140,7 +215,7 @@ export default function DashboardShellPage() {
               }`}
             >
               <Landmark className="h-3.5 w-3.5" />
-              Department Cost & Gov&apos;t Remittances
+              Department Cost Chart & Gov&apos;t Remittances
             </button>
             <button
               onClick={() => setActiveTab('audit')}
@@ -161,51 +236,97 @@ export default function DashboardShellPage() {
               RBAC & Separation of Duties ({user?.permissions?.length || 0}/{ALL_PERMISSIONS.length})
             </button>
           </div>
+
+          {activeTab === 'audit' && (
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                <input
+                  type="text"
+                  value={auditSearch}
+                  onChange={(e) => setAuditSearch(e.target.value)}
+                  placeholder="Search event, actor, or IP..."
+                  className="h-8 pl-8 pr-3 rounded-lg border border-slate-300 bg-white text-xs"
+                />
+              </div>
+              <select
+                value={auditFilter}
+                onChange={(e) => setAuditFilter(e.target.value)}
+                className="h-8 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium"
+              >
+                <option value="all">All Categories</option>
+                <option value="payroll">Payroll Runs</option>
+                <option value="time">Leaves & Overtime</option>
+                <option value="payslips">Payslip PDF Downloads</option>
+                <option value="system">Auth & System</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* TAB 1: DEPARTMENT BREAKDOWN & STATUTORY REMITTANCE SCHEDULE */}
+        {/* TAB 1: RECHARTS DEPARTMENT BREAKDOWN & STATUTORY REMITTANCE SCHEDULE */}
         {activeTab === 'analytics' && (
           <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden">
-            {/* Department Cost Distribution (5 cols) */}
+            {/* Recharts Department Cost Distribution (5 cols) */}
             <Card className="lg:col-span-5 flex flex-col min-h-0 overflow-hidden">
               <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between shrink-0">
                 <div className="text-xs font-bold text-slate-800">
-                  Department Payroll Cost Distribution
+                  Department Payroll Cost (Monthly vs Cutoff Gross)
                 </div>
-                <Badge variant="default">5 Departments</Badge>
+                <Badge variant="default">Recharts Live</Badge>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
-                {(analytics?.department_breakdown || []).map((dept) => {
-                  const pct = Math.round((dept.monthly_basic_total / maxDeptSalary) * 100)
-                  return (
-                    <div key={dept.code} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <div>
-                          <span className="font-mono font-bold text-indigo-600 mr-1.5">
-                            [{dept.code}]
-                          </span>
-                          <span className="font-semibold text-slate-900">{dept.name}</span>
-                          <span className="ml-1.5 text-[11px] text-slate-400">
-                            ({dept.headcount} emp)
-                          </span>
-                        </div>
-                        <span className="font-mono font-bold text-slate-900">
-                          {fmt(dept.monthly_basic_total)}/mo
+              <div className="flex-1 min-h-0 p-3 flex flex-col justify-between overflow-y-auto">
+                <div className="h-52 w-full shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={analytics?.department_breakdown || []}
+                      margin={{ top: 8, right: 12, left: 4, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="code" tick={{ fontSize: 11 }} />
+                      <YAxis
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        formatter={(val) => fmt(val)}
+                        contentStyle={{ fontSize: '11px', borderRadius: '8px' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      <Bar
+                        dataKey="monthly_basic_total"
+                        name="Monthly Basic"
+                        fill="#4f46e5"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="latest_cutoff_gross"
+                        name="Cutoff Gross"
+                        fill="#10b981"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="mt-2 divide-y divide-slate-100 text-xs">
+                  {(analytics?.department_breakdown || []).map((dept) => (
+                    <div key={dept.code} className="py-1.5 flex items-center justify-between">
+                      <div>
+                        <span className="font-mono font-bold text-indigo-600 mr-1.5">
+                          [{dept.code}]
+                        </span>
+                        <span className="font-medium text-slate-800">{dept.name}</span>
+                        <span className="ml-1 text-[10px] text-slate-400">
+                          ({dept.headcount} emp)
                         </span>
                       </div>
-                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-600 rounded-full transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <div className="text-[10px] text-slate-500 flex justify-between font-mono">
-                        <span>Latest Cutoff Gross: {fmt(dept.latest_cutoff_gross)}</span>
-                        <span>{pct}% of top cost center</span>
-                      </div>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {fmt(dept.monthly_basic_total)}/mo
+                      </span>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
             </Card>
 
@@ -300,7 +421,7 @@ export default function DashboardShellPage() {
               <div className="text-xs font-bold text-slate-800">
                 Spatie Activitylog — Immutable Security & Payroll Compliance Audit Trail
               </div>
-              <Badge variant="success">Tamper-Evident Log</Badge>
+              <Badge variant="success">{filteredLogs.length} Events Shown</Badge>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
               <table className="w-full text-left border-collapse">
@@ -314,7 +435,7 @@ export default function DashboardShellPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-xs bg-white">
-                  {(analytics?.audit_logs || []).map((log) => (
+                  {filteredLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50/80">
                       <td className="py-2.5 px-4">
                         <Badge variant="info">{log.event || log.log_name}</Badge>
@@ -346,7 +467,7 @@ export default function DashboardShellPage() {
                 Active Role Permission Matrix — {user?.primary_role}
               </div>
               <Badge variant="info">
-                 Payroll Officer computes • Finance Approver locks
+                Payroll Officer computes • Finance Approver locks
               </Badge>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 content-start">

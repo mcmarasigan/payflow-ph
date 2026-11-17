@@ -16,6 +16,7 @@ import {
   Eye,
   ShieldCheck,
   AlertCircle,
+  Download,
 } from 'lucide-react'
 
 const fmt = (val) =>
@@ -124,6 +125,22 @@ export default function PayrollRunPage() {
     }
   }
 
+  const handleExportCsv = async () => {
+    if (!selectedRun) return
+    const res = await api.get(`/payroll/runs/${selectedRun.id}/export-csv`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Payroll-Register-${selectedRun.run_code}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  }
+
   const statusBadge = (status) => {
     if (status === 'locked') return <Badge variant="success">LOCKED & RELEASED</Badge>
     if (status === 'approved') return <Badge variant="info">APPROVED (IMMUTABLE)</Badge>
@@ -226,6 +243,17 @@ export default function PayrollRunPage() {
 
               {/* Separation of Duties Action Buttons */}
               <div className="flex items-center gap-2">
+                {items.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportCsv}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    Export Register CSV
+                  </Button>
+                )}
+
                 {!selectedRun.is_immutable && canCompute && (
                   <Button
                     size="sm"

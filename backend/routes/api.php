@@ -61,8 +61,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payroll/runs/{payrollRun}/lock', [PayrollController::class, 'lock'])
         ->middleware('permission:payroll.release');
 
-    // Phase 5: Employee Self-Service Portal, Printable PDF Payslips & Executive Analytics
+    // Phase 5 & 6: Employee Self-Service Portal, Printable PDF Payslips, CSV Export, Executive Analytics & Demo Reset
     Route::get('/portal/overview', [PortalAndReportsController::class, 'portalOverview']);
     Route::get('/portal/payslips/{payrollItem}/pdf', [PortalAndReportsController::class, 'downloadPayslipPdf']);
     Route::get('/executive/analytics', [PortalAndReportsController::class, 'executiveAnalytics']);
+    Route::get('/payroll/runs/{payrollRun}/export-csv', [PortalAndReportsController::class, 'exportPayrollRunCsv']);
+    Route::post('/system/reset-demo', [PortalAndReportsController::class, 'resetDemoDatabase'])
+        ->middleware('permission:settings.manage');
 });
